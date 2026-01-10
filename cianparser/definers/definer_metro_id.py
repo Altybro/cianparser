@@ -1,9 +1,8 @@
 import time
-import requests
+from curl_cffi import requests
 from bs4 import BeautifulSoup
 import collections
 import csv
-import cloudscraper
 
 ParseMetroNames = collections.namedtuple(
     'ParseResults',
@@ -17,7 +16,7 @@ ParseMetroNames = collections.namedtuple(
 
 class Client:
     def __init__(self, start_metro_id=1, end_metro_id=20):
-        self.session = cloudscraper.create_scraper()
+        self.session = requests.Session(impersonate="chrome")
         self.session.headers = {'Accept-Language': 'en'}
 
         self.metro_stations = []
@@ -73,7 +72,7 @@ class Client:
     def define_all_metro_stations(self):
         for metro_id in range(self.start_metro_id, self.end_metro_id+1):
             path = f'https://www.cian.ru/cat.php?deal_type=rent&engine_version=2&offer_type=flat&p=1&region=1&type=4&metro[0]={metro_id}'
-            response = requests.get(path)
+            response = self.session.get(path, timeout=30)
             html = response.text
             self.define_metro(html, metro_id)
             time.sleep(2)

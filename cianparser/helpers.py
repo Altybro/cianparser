@@ -25,13 +25,22 @@ def define_rooms_count(description):
 
 
 def define_deal_url_id(url: str):
-    url_path_elements = url.split("/")
+    # Убираем параметры запроса
+    clean_url = url.split('?')[0]
+    url_path_elements = clean_url.split("/")
+    
+    # Ищем числовой ID в URL
+    for element in reversed(url_path_elements):
+        if element.isdigit() and len(element) > 3:
+            return element
+    
+    # Fallback - берем последний элемент без параметров
     if len(url_path_elements[-1]) > 3:
         return url_path_elements[-1]
     if len(url_path_elements[-2]) > 3:
         return url_path_elements[-2]
 
-    return "-1"
+    return url
 
 
 def define_author(block):
@@ -266,6 +275,7 @@ def define_location_data(block, is_sale):
 
 
 def define_price_data(block):
+    # Сначала ищем в стандартном месте
     elements = block.select("div[data-name='LinkArea']")[0]. \
         select("span[data-mark='MainPrice']")
 
@@ -291,6 +301,26 @@ def define_price_data(block):
             price_data["price"] = int("".join(price_description[:price_description.find("₽") - 1].split()))
 
             return price_data
+    
+    # Ищем цену в data-testid="price-amount" (работает для обоих случаев)
+    price_elem = block.select("[data-testid='price-amount']")
+    if price_elem:
+        price_text = price_elem[0].get_text(strip=True)
+        if "₽" in price_text:
+            price_digits = re.sub(r'[^\d]', '', price_text)
+            if price_digits and len(price_digits) >= 5:
+                price_data["price"] = int(price_digits)
+                return price_data
+    
+    # Fallback: ищем любой span с ценой
+    all_spans = block.select("span")
+    for span in all_spans:
+        text = span.get_text(strip=True)
+        if "₽" in text and "млн" not in text.lower():
+            price_digits = re.sub(r'[^\d]', '', text)
+            if price_digits and len(price_digits) >= 5:
+                price_data["price"] = int(price_digits)
+                return price_data
 
     return price_data
 

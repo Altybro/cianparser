@@ -86,10 +86,19 @@ class BaseListPageParser:
         return self.result
 
     def save_results(self):
+        if not self.result:
+            return
+            
         self.remove_unnecessary_fields()
-        keys = self.result[0].keys()
+        
+        # Собираем все возможные ключи из всех записей
+        all_keys = set()
+        for item in self.result:
+            all_keys.update(item.keys())
+        
+        keys = sorted(all_keys)  # Сортируем для стабильности
 
-        with open(self.file_path, 'w', newline='', encoding='utf-8') as output_file:
+        with open(self.file_path, 'w', newline='', encoding='utf-8-sig') as output_file:
             dict_writer = csv.DictWriter(output_file, keys, delimiter=';')
             dict_writer.writeheader()
             dict_writer.writerows(self.result)

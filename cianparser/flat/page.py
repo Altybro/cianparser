@@ -9,7 +9,7 @@ class FlatPageParser:
         self.url = url
 
     def __load_page__(self):
-        res = self.session.get(self.url)
+        res = self.session.get(self.url, timeout=30)
         if res.status_code == 429:
             time.sleep(10)
         res.raise_for_status()
@@ -28,7 +28,13 @@ class FlatPageParser:
             "floor": -1,
             "floors_count": -1,
             "phone": "",
+            "description": "",
         }
+
+        # Парсим описание
+        description_elem = self.offer_page_soup.select_one("div[data-name='Description'] span")
+        if description_elem:
+            page_data["description"] = description_elem.get_text(strip=True)
 
         spans = self.offer_page_soup.select("span")
         for index, span in enumerate(spans):

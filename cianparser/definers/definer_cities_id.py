@@ -1,10 +1,9 @@
 import time
-import requests
+from curl_cffi import requests
 from bs4 import BeautifulSoup
 import pymorphy2
 import collections
 import csv
-import cloudscraper
 
 ParseCityNames = collections.namedtuple(
     'ParseResults',
@@ -17,7 +16,7 @@ ParseCityNames = collections.namedtuple(
 
 class Client:
     def __init__(self, start_location_id=1, end_location_id=20):
-        self.session = cloudscraper.create_scraper()
+        self.session = requests.Session(impersonate="chrome")
         self.session.headers = {'Accept-Language': 'en'}
 
         self.cities = []
@@ -64,7 +63,7 @@ class Client:
     def define_all_cities(self):
         for location_id in range(self.start_location_id, self.end_location_id+1):
             path = f'https://www.cian.ru/cat.php?deal_type=rent&engine_version=2&offer_type=flat&p=1&region={location_id}&type=4'
-            response = requests.get(path)
+            response = self.session.get(path, timeout=30)
             html = response.text
             self.define_city(html, location_id)
             time.sleep(2)

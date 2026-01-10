@@ -1,4 +1,4 @@
-import cloudscraper
+from curl_cffi import requests
 import time
 
 from cianparser.constants import CITIES, METRO_STATIONS, DEAL_TYPES, OBJECT_SUBURBAN_TYPES
@@ -30,8 +30,11 @@ class CianParser:
         location_id = __validation_init__(location)
 
         self.__parser__ = None
-        self.__session__ = cloudscraper.create_scraper()
-        self.__session__.headers = {'Accept-Language': 'en'}
+        self.__session__ = requests.Session(impersonate="chrome")
+        self.__session__.headers = {
+            'Accept-Language': 'ru-RU,ru;q=0.9,en;q=0.8',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        }
         self.__proxy_pool__ = ProxyPool(proxies=proxies)
         self.__location_name__ = location
         self.__location_id__ = location_id
@@ -50,7 +53,7 @@ class CianParser:
         if page_number == self.__parser__.start_page and attempt_number_exception == 0:
             print(f"The page from which the collection of information begins: \n {url_list}")
 
-        res = self.__session__.get(url=url_list)
+        res = self.__session__.get(url=url_list, timeout=30)
         if res.status_code == 429:
             time.sleep(10)
         res.raise_for_status()

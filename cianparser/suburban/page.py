@@ -9,7 +9,7 @@ class SuburbanPageParser:
         self.url = url
 
     def __load_page__(self):
-        res = self.session.get(self.url)
+        res = self.session.get(self.url, timeout=30)
         if res.status_code == 429:
             time.sleep(10)
         res.raise_for_status()
