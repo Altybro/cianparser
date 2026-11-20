@@ -92,7 +92,7 @@ class CianParser:
         print(f"\n\nThe collection of information from the pages with list of offers is completed")
         print(f"Total number of parsed offers: {self.__parser__.count_parsed_offers}. ", end="\n")
 
-    def get_flats(self, deal_type: str, rooms, with_saving_csv=False, with_extra_data=False, additional_settings=None):
+    def get_flats(self, deal_type: str, rooms, custom_name = None, with_saving_csv=False, with_extra_data=False, district_id = None, additional_settings=None):
         """
         Parse information of flats from cian website
         Examples:
@@ -117,11 +117,12 @@ class CianParser:
             location_name=self.__location_name__,
             with_saving_csv=with_saving_csv,
             with_extra_data=with_extra_data,
-            additional_settings=additional_settings,
+            district_id = district_id,
+            additional_settings=additional_settings, custom_name = custom_name
         )
         self.__run__(
             __build_url_list__(location_id=self.__location_id__, deal_type=deal_type, accommodation_type="flat",
-                               rooms=rooms, rent_period_type=rent_period_type,
+                               rooms=rooms, rent_period_type=rent_period_type, district_id = district_id,
                                additional_settings=additional_settings))
         return self.__parser__.result
 
@@ -233,7 +234,7 @@ def __validation_get_suburban__(suburban_type, deal_type):
 
 
 def __build_url_list__(location_id, deal_type, accommodation_type, rooms=None, rent_period_type=None,
-                       suburban_type=None, additional_settings=None):
+                       suburban_type=None, district_id = None, additional_settings=None):
     url_builder = URLBuilder(accommodation_type == "newobject")
     url_builder.add_location(location_id)
     url_builder.add_deal_type(deal_type)
@@ -247,6 +248,9 @@ def __build_url_list__(location_id, deal_type, accommodation_type, rooms=None, r
 
     if suburban_type is not None:
         url_builder.add_object_suburban_type(suburban_type)
+
+    if district_id is not None:
+        url_builder.add_district(district_id)
 
     if additional_settings is not None:
         url_builder.add_additional_settings(additional_settings)

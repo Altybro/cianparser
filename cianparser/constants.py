@@ -35,6 +35,7 @@ MIN_FLOOR_PATH = "&minfloor={}"
 MAX_FLOOR_PATH = "&maxfloor={}"
 MIN_TOTAL_FLOOR_PATH = "&minfloorn={}"
 MAX_TOTAL_FLOOR_PATH = "&maxfloorn={}"
+DISTRICT_PATH = "&district={}"
 
 HOUSE_MATERIAL_TYPE_PATH = "&house_material%5B0%5D={}"
 

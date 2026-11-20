@@ -8,8 +8,8 @@ class BaseListPageParser:
     def __init__(self,
                  session,
                  accommodation_type: str, deal_type: str, rent_period_type, location_name: str,
-                 with_saving_csv=False, with_extra_data=False,
-                 object_type=None, additional_settings=None):
+                 with_saving_csv=False, with_extra_data=False, district_id = None,
+                 object_type=None, additional_settings=None, custom_name = None):
         self.accommodation_type = accommodation_type
         self.session = session
         self.deal_type = deal_type
@@ -18,7 +18,9 @@ class BaseListPageParser:
         self.with_saving_csv = with_saving_csv
         self.with_extra_data = with_extra_data
         self.additional_settings = additional_settings
+        self.district_id = district_id
         self.object_type = object_type
+        self.custom_name = custom_name
 
         self.result = []
         self.result_set = set()
@@ -26,7 +28,7 @@ class BaseListPageParser:
         self.count_parsed_offers = 0
         self.start_page = 1 if (additional_settings is None or "start_page" not in additional_settings.keys()) else additional_settings["start_page"]
         self.end_page = 100 if (additional_settings is None or "end_page" not in additional_settings.keys()) else additional_settings["end_page"]
-        self.file_path = self.build_file_path()
+        self.file_path = self.build_file_path(custom_name = custom_name)
 
     def is_sale(self):
         return self.deal_type == "sale"

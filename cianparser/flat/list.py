@@ -1,3 +1,5 @@
+import re
+import math
 import bs4
 import time
 import pathlib
@@ -11,9 +13,12 @@ from cianparser.base_list import BaseListPageParser
 
 
 class FlatListPageParser(BaseListPageParser):
-    def build_file_path(self):
-        now_time = datetime.now().strftime("%d_%b_%Y_%H_%M_%S_%f")
-        file_name = FILE_NAME_FLAT_FORMAT.format(self.accommodation_type, self.deal_type, self.start_page, self.end_page, translit(self.location_name.lower(), reversed=True), now_time)
+    def build_file_path(self, custom_name = None):
+        if custom_name is None:
+            now_time = datetime.now().strftime("%d_%b_%Y_%H_%M_%S_%f")
+            file_name = FILE_NAME_FLAT_FORMAT.format(self.accommodation_type, self.deal_type, self.start_page, self.end_page, translit(self.location_name.lower(), reversed=True), now_time)
+        else: 
+            file_name = f"{custom_name}.csv"
         return pathlib.Path(pathlib.Path.cwd(), file_name.replace("'", ""))
 
     def parse_list_offers_page(self, html, page_number: int, count_of_pages: int, attempt_number: int):
@@ -28,19 +33,36 @@ class FlatListPageParser(BaseListPageParser):
             return False, attempt_number + 1, False
 
         offers = list_soup.select("article[data-name='CardComponent']")
+        
+        is_last_page = False
+        
+        header_text = header[0].text
+        match = re.search(r'(\d[\d\s]*)\s*объявлен', header_text)
+        if match:
+            total_results = int(match.group(1).replace(' ', ''))
+            offers_per_page = 28  
+            total_pages = math.ceil(total_results / offers_per_page)
+            if page_number >= total_pages:
+                is_last_page = True
+        else:
+            if 0 < len(offers) < 28:
+                is_last_page = True
+
+        if len(offers) == 0:
+            is_last_page = True
+
         print("")
         print(f"\r {page_number} page: {len(offers)} offers", end="\r", flush=True)
-
         if page_number == self.start_page and attempt_number == 0:
             print(f"Collecting information from pages with list of offers", end="\n")
-
+            
         for ind, offer in enumerate(offers):
             self.parse_offer(offer=offer)
             self.print_parse_progress(page_number=page_number, count_of_pages=count_of_pages, offers=offers, ind=ind)
-
+            
         time.sleep(2)
-
-        return True, 0, False
+        
+        return True, 0, is_last_page
 
     def parse_offer(self, offer):
         common_data = dict()

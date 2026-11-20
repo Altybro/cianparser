@@ -25,6 +25,9 @@ class URLBuilder:
     def add_location(self, location_id):
         self.url += REGION_PATH.format(location_id)
 
+    def add_district(self, district_id):
+        self.url += DISTRICT_PATH.format(district_id)
+
     def add_room(self, rooms):
         rooms_path = ""
         if type(rooms) is tuple:
