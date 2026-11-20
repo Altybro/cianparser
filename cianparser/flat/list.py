@@ -23,32 +23,28 @@ class FlatListPageParser(BaseListPageParser):
 
     def parse_list_offers_page(self, html, page_number: int, count_of_pages: int, attempt_number: int):
         list_soup = bs4.BeautifulSoup(html, 'html.parser')
-
+        
         if list_soup.text.find("Captcha") > 0:
             print(f"\r{page_number} page: there is CAPTCHA... failed to parse page...")
             return False, attempt_number + 1, True
-
+        
         header = list_soup.select("div[data-name='HeaderDefault']")
         if len(header) == 0:
             return False, attempt_number + 1, False
-
+            
         offers = list_soup.select("article[data-name='CardComponent']")
         
         is_last_page = False
         
-        header_text = header[0].text
-        match = re.search(r'(\d[\d\s]*)\s*объявлен', header_text)
-        if match:
-            total_results = int(match.group(1).replace(' ', ''))
-            offers_per_page = 28  
-            total_pages = math.ceil(total_results / offers_per_page)
-            if page_number >= total_pages:
-                is_last_page = True
+        next_link = None
+        for a in list_soup.find_all('a'):
+            if 'Дальше' in a.get_text():
+                next_link = a
+                break
+        
+        if next_link and next_link.has_attr('href'):
+            is_last_page = False
         else:
-            if 0 < len(offers) < 28:
-                is_last_page = True
-
-        if len(offers) == 0:
             is_last_page = True
 
         print("")
